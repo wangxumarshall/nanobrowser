@@ -1,0 +1,34 @@
+{
+  "onboarding": {
+    "title": "When did you arrive in this world?",
+    "subtitle": "Your countdown begins from the moment of birth.",
+    "submit": "Enter the Void",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "name_label": "Your Name",
+    "dob_label": "Date of Birth",
+    "expectancy_label": "Life Expectancy (Years)"
+  },
+  "clock": {
+    "remaining": "REMAINING",
+    "years": "YEARS",
+    "days": "DAYS"
+  },
+  "diary": {
+    "placeholder": "What did you do today? (e.g., Read a book, Stayed up late...)",
+    "submit": "Record",
+    "analyzing": "The Void is listening..."
+  },
+  "bucket": {
+    "title": "Meaning List",
+    "add_placeholder": "Before I die, I want to...",
+    "add": "Add",
+    "empty": "No goals yet. Define your meaning."
+  },
+  "feedback": {
+    "positive": "Life Extended",
+    "negative": "Life Consumed"
+  }
+}

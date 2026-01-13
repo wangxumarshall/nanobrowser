@@ -1,0 +1,34 @@
+{
+  "onboarding": {
+    "title": "你何时降临于此？",
+    "subtitle": "倒计时始于出生那一刻。",
+    "submit": "进入虚空",
+    "days": "天",
+    "hours": "小时",
+    "minutes": "分",
+    "seconds": "秒",
+    "name_label": "你的名字",
+    "dob_label": "出生日期",
+    "expectancy_label": "预期寿命 (岁)"
+  },
+  "clock": {
+    "remaining": "生命仅剩",
+    "years": "年",
+    "days": "天"
+  },
+  "diary": {
+    "placeholder": "今天你做了什么？(如：健身、阅读、熬夜...)",
+    "submit": "记录",
+    "analyzing": "虚空正在聆听..."
+  },
+  "bucket": {
+    "title": "意义清单",
+    "add_placeholder": "死前必做之事...",
+    "add": "添加",
+    "empty": "暂无清单。定义你的意义。"
+  },
+  "feedback": {
+    "positive": "生命延展",
+    "negative": "生命损耗"
+  }
+}
