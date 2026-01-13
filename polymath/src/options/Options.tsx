@@ -54,7 +54,8 @@ const Select = ({ label, options, ...props }: any) => (
 const OptionsApp = () => {
   const {
     providers, agents, loadSettings, isLoaded,
-    updateProvider, updateAgent, addAgent, deleteAgent
+    updateProvider, addProvider, deleteProvider,
+    updateAgent, addAgent, deleteAgent
   } = useSettingsStore();
 
   const [activeTab, setActiveTab] = useState<'providers' | 'agents'>('agents');
@@ -80,17 +81,45 @@ const OptionsApp = () => {
 
       {activeTab === 'providers' && (
         <div className="space-y-6">
+          <div className="flex justify-end">
+             <Button onClick={() => addProvider({
+               id: Math.random().toString(36).substring(7),
+               name: 'New Provider',
+               type: 'openai',
+               baseUrl: 'https://api.openai.com/v1',
+               apiKey: ''
+             })}>
+               <Plus className="w-4 h-4" /> Add Provider
+             </Button>
+          </div>
+
           <div className="grid gap-4">
             {providers.map(p => (
               <Card key={p.id}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-lg">{p.name}</h3>
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 uppercase">{p.type}</span>
+                <div className="flex justify-between items-start mb-4 border-b pb-2 border-black/5">
+                  <div className="flex-1 mr-4">
+                    <Input
+                      label="Provider Name"
+                      value={p.name}
+                      onChange={(e: any) => updateProvider(p.id, { name: e.target.value })}
+                      placeholder="e.g. OpenAI"
+                    />
                   </div>
-                  {/* Providers are currently hardcoded in store for simplicity, but editable */}
+                  <Button variant="destructive" className="mt-5 px-2 py-1 h-auto text-xs" onClick={() => deleteProvider(p.id)}>
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <Select
+                    label="Type"
+                    value={p.type}
+                    onChange={(e: any) => updateProvider(p.id, { type: e.target.value })}
+                    options={[
+                      { value: 'openai', label: 'OpenAI Compatible' },
+                      { value: 'ollama', label: 'Ollama' },
+                      { value: 'anthropic', label: 'Anthropic' }
+                    ]}
+                  />
                   <Input
                     label="Base URL"
                     value={p.baseUrl}

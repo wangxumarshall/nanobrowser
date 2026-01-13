@@ -252,7 +252,40 @@ The seminar has concluded that the topic requires... (Synthesis).
              <div className="bg-gray-50 p-3 border-t flex justify-end">
                <button
                  onClick={() => {
-                   const md = `# Final Consensus: ${seminar.topic}\n\n## Executive Summary\nAfter ${seminar.rounds.length} rounds of debate, the panel has reached a convergence score of **${Math.round((seminar.rounds[seminar.rounds.length-1]?.arbitration?.convergenceScore || 0) * 100)}%**.\n\n## Agreed Facts\n${seminar.rounds[seminar.rounds.length-1]?.arbitration?.consensusFacts.map(f => `- ${f}`).join('\n') || 'No complete consensus facts recorded.'}\n\n## Key Perspectives\n${seminar.rounds[seminar.rounds.length-1]?.arbitration?.clusters.map(c => `### ${c.label}\n${c.coreArgument}`).join('\n\n') || ''}\n\n## Conclusion\nThe seminar has concluded.`;
+                   let md = `# Polymath Seminar Report: ${seminar.topic}\n\n`;
+                   md += `**Date:** ${new Date().toLocaleString()}\n`;
+                   md += `**Participants:** ${settings.agents.filter(a => seminar.config.activeAgentIds.includes(a.id)).map(a => a.name).join(', ')}\n`;
+                   md += `**Total Rounds:** ${seminar.rounds.length}\n\n`;
+                   md += `---\n\n`;
+
+                   seminar.rounds.forEach(round => {
+                     md += `## Round ${round.roundIndex}\n\n`;
+
+                     md += `### Research Inputs\n`;
+                     round.inputs.forEach(input => {
+                       const agent = settings.agents.find(a => a.id === input.agentId);
+                       md += `#### ${agent?.name || 'Unknown Agent'}\n${input.content}\n\n`;
+                     });
+
+                     if (round.arbitration) {
+                       md += `### Synthesis & Arbitration\n`;
+                       md += `**Next Focus:** ${round.arbitration.nextRoundFocus}\n\n`;
+
+                       md += `**Consensus Facts:**\n`;
+                       round.arbitration.consensusFacts.forEach(f => md += `- ${f}\n`);
+                       md += `\n`;
+
+                       md += `**Viewpoint Clusters:**\n`;
+                       round.arbitration.clusters.forEach(c => {
+                          md += `- **${c.label}** (${c.strength}%): ${c.coreArgument}\n`;
+                       });
+                     }
+                     md += `\n---\n\n`;
+                   });
+
+                   md += `## Final Status\n`;
+                   md += `The seminar concluded with a convergence score of ${Math.round((seminar.rounds[seminar.rounds.length-1]?.arbitration?.convergenceScore || 0) * 100)}%.\n`;
+
                    const blob = new Blob([md], { type: 'text/markdown' });
                    const url = URL.createObjectURL(blob);
                    const a = document.createElement('a');
@@ -262,7 +295,7 @@ The seminar has concluded that the topic requires... (Synthesis).
                  }}
                  className="text-blue-600 text-xs font-bold uppercase flex items-center gap-1 hover:underline"
                >
-                 <FileText className="w-3 h-3" /> Export Markdown
+                 <FileText className="w-3 h-3" /> Export Full Report
                </button>
              </div>
           </div>
