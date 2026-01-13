@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Polymath",
+  "version": "3.0.0",
+  "description": "Multi-agent consensus engine",
+  "permissions": ["storage", "sidePanel"],
+  "options_page": "src/options/index.html",
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Polymath"
+  },
+  "icons": {
+    "16": "public/icon16.png",
+    "48": "public/icon48.png",
+    "128": "public/icon128.png"
+  }
+}
