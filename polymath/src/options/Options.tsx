@@ -55,10 +55,12 @@ const OptionsApp = () => {
   const {
     providers, agents, loadSettings, isLoaded,
     updateProvider, addProvider, deleteProvider,
-    updateAgent, addAgent, deleteAgent
+    updateAgent, addAgent, deleteAgent,
+    saveSettings
   } = useSettingsStore();
 
   const [activeTab, setActiveTab] = useState<'providers' | 'agents'>('agents');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   useEffect(() => {
     loadSettings();
@@ -73,9 +75,22 @@ const OptionsApp = () => {
           <h1 className="text-2xl font-bold text-gray-900">Polymath Configuration</h1>
           <p className="text-gray-500">Manage your Multi-Agent Seminar Environment</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Button variant={activeTab === 'agents' ? 'primary' : 'secondary'} onClick={() => setActiveTab('agents')}>Agents</Button>
           <Button variant={activeTab === 'providers' ? 'primary' : 'secondary'} onClick={() => setActiveTab('providers')}>Providers</Button>
+          <div className="w-px h-6 bg-gray-300 mx-2"></div>
+          <Button
+            onClick={async () => {
+              setSaveStatus('saving');
+              await saveSettings();
+              setSaveStatus('saved');
+              setTimeout(() => setSaveStatus('idle'), 2000);
+            }}
+            className={saveStatus === 'saved' ? "bg-green-600 hover:bg-green-700 text-white" : "bg-black text-white hover:bg-gray-800"}
+          >
+            {saveStatus === 'saving' ? <span className="animate-spin mr-1">⟳</span> : <Save className="w-4 h-4" />}
+            {saveStatus === 'saved' ? 'Saved!' : 'Save Configuration'}
+          </Button>
         </div>
       </header>
 

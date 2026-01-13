@@ -31,24 +31,47 @@ export class LLMService {
       dangerouslyAllowBrowser: true
     });
 
-    try {
-      const response = await client.chat.completions.create({
-        model: agent.modelString,
-        messages: [
-          // Inject custom system prompt if it exists, otherwise rely on the caller's messages
-          ...(agent.customSystemPrompt ? [{ role: 'system' as const, content: agent.customSystemPrompt }] : []),
-          ...messages
-        ],
-        temperature: jsonMode ? 0 : agent.parameters.temperature,
-        top_p: agent.parameters.top_p,
-        max_tokens: agent.parameters.max_tokens,
-        response_format: jsonMode ? { type: 'json_object' } : undefined
-      });
+    const maxRetries = 3;
+    let lastError: any;
 
-      return response.choices[0]?.message?.content || '';
-    } catch (error: any) {
-      console.error('LLM Call Failed:', error);
-      throw new Error(`LLM Error [${agent.name}]: ${error.message}`);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await client.chat.completions.create({
+          model: agent.modelString,
+          messages: [
+            // Inject custom system prompt if it exists, otherwise rely on the caller's messages
+            ...(agent.customSystemPrompt ? [{ role: 'system' as const, content: agent.customSystemPrompt }] : []),
+            ...messages
+          ],
+          temperature: jsonMode ? 0 : agent.parameters.temperature,
+          top_p: agent.parameters.top_p,
+          max_tokens: agent.parameters.max_tokens,
+          response_format: jsonMode ? { type: 'json_object' } : undefined
+        });
+
+        return response.choices[0]?.message?.content || '';
+      } catch (error: any) {
+        console.error(`LLM Call Failed (Attempt ${attempt}/${maxRetries}):`, error);
+        lastError = error;
+
+        // Retry on 5xx errors or connection errors
+        const isRetryable =
+          error.status >= 500 ||
+          error.code === 'ECONNRESET' ||
+          error.code === 'ETIMEDOUT' ||
+          (error.message && error.message.includes('timeout'));
+
+        if (attempt < maxRetries && isRetryable) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        break; // Don't retry if not retryable or max retries reached
+      }
     }
+
+    throw new Error(`LLM Error [${agent.name}]: ${lastError?.message || 'Unknown error'}`);
   }
 }

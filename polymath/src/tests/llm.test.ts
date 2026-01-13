@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LLMService } from '../services/llm';
 import { AgentProfile, LLMProvider } from '../types';
 
@@ -34,6 +34,10 @@ describe('LLMService', () => {
     customSystemPrompt: 'System Prompt'
   };
 
+  beforeEach(() => {
+    mockCreate.mockClear();
+  });
+
   it('should call OpenAI with correct parameters', async () => {
     mockCreate.mockResolvedValueOnce({
       choices: [{ message: { content: 'Hello World' } }]
@@ -67,5 +71,46 @@ describe('LLMService', () => {
       temperature: 0,
       response_format: { type: 'json_object' }
     }));
+  });
+
+  it('should retry on 504 error and succeed', async () => {
+    vi.useFakeTimers(); // Enable fake timers
+
+    // Fail once with 504
+    mockCreate.mockRejectedValueOnce({ status: 504, message: 'Gateway Timeout' });
+    // Succeed next
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: 'Recovered' } }]
+    });
+
+    const promise = LLMService.generateCompletion(mockProvider, mockAgent, []);
+
+    // Fast-forward
+    await vi.runAllTimersAsync();
+
+    const result = await promise;
+
+    expect(result).toBe('Recovered');
+    expect(mockCreate).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+
+  it('should fail after max retries', async () => {
+    vi.useFakeTimers();
+
+    // Fail 3 times
+    mockCreate.mockRejectedValue({ status: 500, message: 'Server Error' });
+
+    const promise = LLMService.generateCompletion(mockProvider, mockAgent, []);
+
+    // Fast-forward all delays
+    await vi.runAllTimersAsync();
+
+    await expect(promise).rejects.toThrow('LLM Error [Test Agent]: Server Error');
+
+    expect(mockCreate).toHaveBeenCalledTimes(3);
+
+    vi.useRealTimers();
   });
 });
