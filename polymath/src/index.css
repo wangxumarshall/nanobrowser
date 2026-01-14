@@ -3,7 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* App-like behavior, rely on inner scroll containers */
+  }
+
   body {
-    @apply antialiased;
+    @apply antialiased bg-gray-50 text-gray-900;
   }
 }

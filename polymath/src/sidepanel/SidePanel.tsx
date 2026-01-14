@@ -72,7 +72,7 @@ const SidePanel = () => {
           <p className="text-sm text-gray-500">Deep Emergent Consensus Engine</p>
         </div>
 
-        <div className="space-y-6 flex-1 overflow-y-auto">
+        <div className="space-y-6 flex-1 min-h-0 overflow-y-auto">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Research Topic</label>
             <textarea
@@ -157,7 +157,7 @@ const SidePanel = () => {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6" ref={scrollRef}>
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-6" ref={scrollRef}>
         {seminar.rounds.map((round, idx) => (
           <div key={idx} className="bg-white rounded-xl shadow-sm border overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
