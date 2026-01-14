@@ -171,6 +171,29 @@ Task:
     }
   }
 
+  // --- JSON Cleaning Helper ---
+  private cleanJsonOutput(text: string): string {
+    let clean = text.trim();
+
+    // Remove Markdown code blocks if present
+    // Matches ```json ... ``` or just ``` ... ```
+    const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/i;
+    const match = clean.match(codeBlockRegex);
+    if (match && match[1]) {
+      clean = match[1].trim();
+    }
+
+    // Attempt to find the first '{' and last '}' to handle any remaining preamble
+    const firstBrace = clean.indexOf('{');
+    const lastBrace = clean.lastIndexOf('}');
+
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      clean = clean.substring(firstBrace, lastBrace + 1);
+    }
+
+    return clean;
+  }
+
   private async performArbitration(
     inputs: { agentId: string, content: string }[],
     arbiterId: string,
@@ -213,12 +236,14 @@ Return strictly valid JSON:
 }
 `;
 
-    const jsonStr = await LLMService.generateCompletion(
+    const rawOutput = await LLMService.generateCompletion(
       this.getProviderForAgent(strictArbiter, settings.providers),
       strictArbiter,
       [{ role: 'user', content: prompt }],
       true // JSON Mode
     );
+
+    const jsonStr = this.cleanJsonOutput(rawOutput);
 
     try {
       const result = JSON.parse(jsonStr);
@@ -231,7 +256,7 @@ Return strictly valid JSON:
         convergenceScore: result.convergenceScore || 0
       };
     } catch (e) {
-      console.error('Failed to parse Arbiter JSON', jsonStr);
+      console.error('Failed to parse Arbiter JSON', jsonStr, e);
       throw new Error('Arbiter failed to produce valid JSON.');
     }
   }

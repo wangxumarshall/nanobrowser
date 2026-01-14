@@ -81,4 +81,25 @@ describe('SeminarEngine', () => {
     expect(round1.inputs).toHaveLength(2);
     expect(round1.arbitration.convergenceScore).toBe(0.5);
   });
+
+  it('should handle markdown wrapped JSON from Arbiter', async () => {
+    // Mock Arbiter returning markdown
+    (LLMService.generateCompletion as any).mockImplementation(async (provider: any, agent: any, msgs: any, json: boolean) => {
+      if (json) {
+        return "Here is the JSON:\n```json\n" + JSON.stringify({
+          clusters: [],
+          consensusFacts: ['Markdown Fact'],
+          nextRoundFocus: 'Focus?',
+          convergenceScore: 0.9
+        }) + "\n```";
+      }
+      return "Agent response";
+    });
+
+    await engine.startSeminar('Topic', { ...mockState.config, maxRounds: 1 });
+
+    const round = mockState.rounds[0] as any;
+    expect(round.arbitration.consensusFacts).toContain('Markdown Fact');
+    expect(round.arbitration.convergenceScore).toBe(0.9);
+  });
 });
