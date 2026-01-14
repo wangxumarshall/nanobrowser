@@ -114,22 +114,39 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       return;
     }
 
-    // Load structure from sync, keys from local
-    const syncData = await chrome.storage.sync.get(['providers', 'agents']);
-    const localData = await chrome.storage.local.get(['apiKeys']);
+    const load = async () => {
+      // Load structure from sync, keys from local
+      const syncData = await chrome.storage.sync.get(['providers', 'agents']);
+      const localData = await chrome.storage.local.get(['apiKeys']);
 
-    let providers: LLMProvider[] = syncData.providers || DEFAULT_PROVIDERS;
-    let agents: AgentProfile[] = syncData.agents || DEFAULT_AGENTS;
+      let providers: LLMProvider[] = syncData.providers || DEFAULT_PROVIDERS;
+      let agents: AgentProfile[] = syncData.agents || DEFAULT_AGENTS;
 
-    // Merge API keys from local storage
-    if (localData.apiKeys) {
-      providers = providers.map(p => ({
-        ...p,
-        apiKey: localData.apiKeys[p.id] || p.apiKey || ''
-      }));
+      // Merge API keys from local storage
+      if (localData.apiKeys) {
+        providers = providers.map(p => ({
+          ...p,
+          apiKey: localData.apiKeys[p.id] || p.apiKey || ''
+        }));
+      }
+
+      set({ providers, agents, isLoaded: true });
+    };
+
+    // Listen for changes (ensure we only attach once)
+    // We check !isLoaded before we finish loading.
+    if (!get().isLoaded) {
+       chrome.storage.onChanged.addListener((changes, areaName) => {
+         if (areaName === 'sync' || areaName === 'local') {
+           // Reload full settings if relevant keys changed
+           if (changes.providers || changes.agents || changes.apiKeys) {
+             load();
+           }
+         }
+       });
     }
 
-    set({ providers, agents, isLoaded: true });
+    await load();
   }
 }));
 

@@ -170,9 +170,30 @@ const SidePanel = () => {
             </div>
 
             <div className="p-4 space-y-4">
+              {/* Agent Chat Messages */}
+              <div className="space-y-3 mb-4">
+                {round.inputs.map((input, i) => {
+                  const agent = settings.agents.find(a => a.id === input.agentId);
+                  return (
+                    <div key={i} className="flex gap-3">
+                       <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-[10px] text-gray-700 border shadow-sm ${agent?.color || 'bg-gray-200'}`}>
+                         {agent?.name[0]}
+                       </div>
+                       <div className="flex-1 bg-gray-50 rounded-lg p-3 text-sm text-gray-800 border">
+                         <div className="font-bold text-xs text-gray-500 mb-1">{agent?.name}</div>
+                         <div className="prose prose-sm max-w-none">
+                            <Markdown>{input.content}</Markdown>
+                         </div>
+                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Clusters View */}
               {round.arbitration?.clusters.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-3 pl-11">
+                   <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Round Synthesis</div>
                   {round.arbitration.clusters.map((cluster, cIdx) => (
                     <div key={cIdx} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
