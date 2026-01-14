@@ -96,10 +96,28 @@ describe('LLMService', () => {
     vi.useRealTimers();
   });
 
+  it('should retry on Connection error', async () => {
+    vi.useFakeTimers();
+
+    mockCreate.mockRejectedValueOnce({ message: 'Connection error' });
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: 'Success' } }]
+    });
+
+    const promise = LLMService.generateCompletion(mockProvider, mockAgent, []);
+    await vi.runAllTimersAsync();
+
+    const result = await promise;
+    expect(result).toBe('Success');
+    expect(mockCreate).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+
   it('should fail after max retries', async () => {
     vi.useFakeTimers();
 
-    // Fail 3 times
+    // Fail 5 times
     mockCreate.mockRejectedValue({ status: 500, message: 'Server Error' });
 
     const promise = LLMService.generateCompletion(mockProvider, mockAgent, []);
@@ -109,7 +127,7 @@ describe('LLMService', () => {
 
     await expect(promise).rejects.toThrow('LLM Error [Test Agent]: Server Error');
 
-    expect(mockCreate).toHaveBeenCalledTimes(3);
+    expect(mockCreate).toHaveBeenCalledTimes(5);
 
     vi.useRealTimers();
   });

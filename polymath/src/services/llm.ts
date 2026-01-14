@@ -28,10 +28,11 @@ export class LLMService {
     const client = new OpenAI({
       baseURL: provider.baseUrl,
       apiKey: provider.apiKey || 'dummy', // Ollama might not need a key, but SDK requires string
-      dangerouslyAllowBrowser: true
+      dangerouslyAllowBrowser: true,
+      timeout: 60000 // 60s client timeout
     });
 
-    const maxRetries = 3;
+    const maxRetries = 5;
     let lastError: any;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -56,13 +57,17 @@ export class LLMService {
 
         // Retry on 5xx errors or connection errors
         const isRetryable =
-          error.status >= 500 ||
+          (error.status && error.status >= 500) ||
           error.code === 'ECONNRESET' ||
           error.code === 'ETIMEDOUT' ||
-          (error.message && error.message.includes('timeout'));
+          (error.message && (
+            error.message.toLowerCase().includes('timeout') ||
+            error.message.toLowerCase().includes('connection error') ||
+            error.message.toLowerCase().includes('rate limit')
+          ));
 
         if (attempt < maxRetries && isRetryable) {
-          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
+          const delay = Math.min(Math.pow(2, attempt) * 1000, 30000); // Exponential backoff capped at 30s
           console.log(`Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
